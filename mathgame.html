@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, minimum-scale=0.5, user-scalable=yes, viewport-fit=cover">
+  <title>數字加減大挑戰 | 小學數學熱身遊戲</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: linear-gradient(145deg, #f7eed7 0%, #fae3c6 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Segoe UI', 'Fredoka', 'Comic Sans MS', '幼圆', 'YouYuan', sans-serif;
+      padding: 2vmin;
+      margin: 0;
+      touch-action: manipulation;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .game-container {
+      background: #fff5e9;
+      border-radius: clamp(2rem, 5vw, 4rem);
+      box-shadow: 0 2vmin 3vmin rgba(0,0,0,0.2), inset 0 0.2vmin 1vmin rgba(255,255,255,0.8);
+      padding: clamp(1.2rem, 3vw, 2.5rem);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border: 0.3vmin solid #e0b084;
+      max-width: 98vw;
+      width: auto;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: clamp(2rem, 6vw, 3.2rem);
+      font-weight: 700;
+      color: #b45f2a;
+      text-shadow: 0.2vmin 0.2vmin 0 #ffe0b5;
+      margin-bottom: clamp(1rem, 2.5vw, 1.8rem);
+      letter-spacing: 0.2em;
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    h1 span {
+      font-size: clamp(1.5rem, 5vw, 2.4rem);
+      background: #ffd29e;
+      padding: 0.3em 1em;
+      border-radius: 3em;
+      color: #5e3a1c;
+      white-space: nowrap;
+    }
+    .toolbox {
+      display: flex;
+      gap: clamp(1.2rem, 3vw, 3rem);
+      margin-bottom: clamp(1.2rem, 3vw, 2rem);
+      background: #ffedd7;
+      padding: clamp(0.8rem, 2vw, 1.5rem) clamp(1.5rem, 3vw, 2.5rem);
+      border-radius: 5em;
+      box-shadow: inset 0 0.3vmin 0.6vmin rgba(160, 100, 40, 0.2), 0 0.8vmin 1.2vmin rgba(160, 100, 20, 0.3);
+      border: 0.2vmin solid #d9a066;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .draggable-block {
+      width: clamp(5rem, 12vw, 7rem);
+      height: clamp(5rem, 12vw, 7rem);
+      border-radius: clamp(1.2rem, 3vw, 2rem);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(1.8rem, 5vw, 2.8rem);
+      font-weight: bold;
+      color: white;
+      text-shadow: 0.1em 0.1em 0 rgba(0,0,0,0.25);
+      box-shadow: 0 0.8vmin 0 rgba(0,0,0,0.2), 0 1vmin 1.5vmin rgba(0,0,0,0.25);
+      cursor: grab;
+      user-select: none;
+      transition: transform 0.1s ease, box-shadow 0.1s;
+      letter-spacing: 0.05em;
+      border: 0.3vmin solid rgba(255,255,255,0.5);
+      touch-action: none;
+      position: relative;
+      z-index: 10;
+    }
+    .draggable-block:active {
+      cursor: grabbing;
+      transform: scale(0.94);
+      box-shadow: 0 0.4vmin 0 rgba(0,0,0,0.2), 0 0.6vmin 1vmin rgba(0,0,0,0.3);
+    }
+    .green-block {
+      background: #5cb85c;
+      background: linear-gradient(180deg, #6ecf6e 0%, #3d8b3d 100%);
+    }
+    .red-block {
+      background: #d9534f;
+      background: linear-gradient(180deg, #f0716a 0%, #b52b27 100%);
+    }
+    .draggable-block.dragging {
+      opacity: 0.4;
+      transform: scale(0.9);
+      cursor: grabbing;
+    }
+    
+    /* 拖動克隆體樣式 - 半透明跟隨手指 */
+    .drag-clone {
+      position: fixed;
+      z-index: 99999;
+      pointer-events: none;
+      opacity: 0.85;
+      transform: scale(1.15);
+      box-shadow: 0 2vmin 3vmin rgba(0,0,0,0.5), 0 0 0 0.4vmin rgba(255,255,255,0.6);
+      border-radius: clamp(1.2rem, 3vw, 2rem);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: white;
+      text-shadow: 0.1em 0.1em 0 rgba(0,0,0,0.3);
+      font-size: clamp(1.8rem, 5vw, 2.8rem);
+      letter-spacing: 0.05em;
+      border: 0.4vmin solid rgba(255,255,255,0.7);
+      transition: none;
+      will-change: transform, left, top;
+    }
+    
+    table {
+      border-collapse: separate;
+      border-spacing: clamp(0.5rem, 1.5vw, 1rem);
+      background: #fce3c8;
+      border-radius: clamp(2.5rem, 5vw, 5rem);
+      padding: clamp(1rem, 2.5vw, 2rem);
+      box-shadow: inset 0 0 0 0.4vmin #f7d5aa, 0 1.5vmin 2vmin rgba(150, 90, 30, 0.35);
+      margin-bottom: 1.5vmin;
+      width: 100%;
+      max-width: 100%;
+    }
+    td {
+      width: clamp(4.5rem, 12vw, 7.5rem);
+      height: clamp(4.5rem, 12vw, 7.5rem);
+      background: #fffef7;
+      border-radius: clamp(1.5rem, 3vw, 2.5rem);
+      text-align: center;
+      vertical-align: middle;
+      font-weight: bold;
+      box-shadow: inset 0 -0.5vmin 0 #d9b382, 0 0.6vmin 1vmin rgba(120, 70, 20, 0.3);
+      transition: background 0.2s, color 0.2s, transform 0.15s;
+      position: relative;
+      color: #4b2e1a;
+      background: #fffbf2;
+      padding: 0;
+      line-height: 1.2;
+    }
+    .row1 td {
+      background: #fff6e6;
+      cursor: text;
+    }
+    .row1 td input {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: transparent;
+      font-size: clamp(1.5rem, 4vw, 2.4rem);
+      font-weight: bold;
+      text-align: center;
+      color: #4b2e1a;
+      outline: none;
+      font-family: inherit;
+      border-radius: inherit;
+      background: rgba(255,255,245,0.8);
+      box-shadow: inset 0 0.2vmin 0.4vmin rgba(0,0,0,0.05);
+      padding: 0.2em;
+    }
+    .row1 td input:focus {
+      background: #fff3d6;
+      box-shadow: 0 0 0 0.4vmin #ffb878;
+    }
+    .row2 td {
+      background: #fef5e7;
+      font-size: clamp(0.9rem, 2.5vw, 1.4rem);
+      color: #b9a089;
+      font-weight: 500;
+      word-break: break-word;
+      transition: all 0.2s;
+      touch-action: none;
+    }
+    .row2 td.light-green {
+      background: #d4edda;
+      box-shadow: inset 0 -0.5vmin 0 #7ea57e, 0 0.6vmin 1vmin rgba(50, 100, 30, 0.35);
+      color: #1e4a1e;
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: bold;
+    }
+    .row2 td.light-red {
+      background: #f8d7da;
+      box-shadow: inset 0 -0.5vmin 0 #b07b7b, 0 0.6vmin 1vmin rgba(130, 40, 40, 0.35);
+      color: #6b1e1e;
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: bold;
+    }
+    .row2 td.drag-hover {
+      transform: scale(0.9);
+      box-shadow: inset 0 -0.5vmin 0 #d9b382, 0 0 0 0.8vmin #ffb878;
+      background: #fff3d6;
+      transition: all 0.1s;
+      z-index: 5;
+    }
+    .row3 td {
+      background: #f9f2e0;
+      color: #2d4a32;
+      font-size: clamp(1.8rem, 5vw, 2.8rem);
+      box-shadow: inset 0 -0.5vmin 0 #c8aa7a, 0 0.6vmin 1vmin rgba(90, 60, 20, 0.4);
+      transition: all 0.2s;
+    }
+    .row3 td.empty-result {
+      color: #c9b896;
+      font-size: clamp(1.2rem, 3.5vw, 1.8rem);
+      font-weight: 400;
+    }
+    .reset-btn {
+      background: #ffb347;
+      border: none;
+      font-size: clamp(1.2rem, 3.5vw, 1.8rem);
+      font-weight: bold;
+      color: #4b2a0e;
+      padding: clamp(0.8rem, 2vw, 1.2rem) clamp(1.5rem, 3.5vw, 2.5rem);
+      margin-top: clamp(0.8rem, 2vw, 1.5rem);
+      border-radius: 3em;
+      cursor: pointer;
+      box-shadow: 0 0.6vmin 0 #bb7711, 0 0.8vmin 1.2vmin rgba(160, 100, 10, 0.4);
+      transition: all 0.08s ease;
+      background: linear-gradient(180deg, #ffbc5e 0%, #f28c1e 100%);
+      border: 0.2vmin solid #ffe3b0;
+      letter-spacing: 0.1em;
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      white-space: nowrap;
+    }
+    .reset-btn:active {
+      transform: translateY(0.3vmin);
+      box-shadow: 0 0.3vmin 0 #bb7711, 0 0.6vmin 1vmin rgba(160, 100, 10, 0.4);
+    }
+    .instruction {
+      font-size: clamp(0.8rem, 2.2vw, 1.2rem);
+      color: #7b4a2c;
+      background: #ffefd2;
+      padding: 0.4em 1.5em;
+      border-radius: 2em;
+      margin-top: 0.8vmin;
+      font-weight: 500;
+      text-align: center;
+    }
+    /* 手機超小螢幕進一步調整 */
+    @media (max-width: 500px) {
+      table {
+        border-spacing: 0.4rem;
+        padding: 0.8rem;
+      }
+      td {
+        width: clamp(3.8rem, 14vw, 5rem);
+        height: clamp(3.8rem, 14vw, 5rem);
+      }
+      .row2 td {
+        font-size: 0.8rem;
+      }
+      .row2 td.light-green,
+      .row2 td.light-red {
+        font-size: 1.4rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="game-container">
+  <h1>
+    🧮 <span>數字加減大挑戰</span> 🧮
+  </h1>
+  
+  <!-- 可拖動的工具方塊 -->
+  <div class="toolbox">
+    <div class="draggable-block green-block" draggable="true" id="dragGreen" data-value="50">+50</div>
+    <div class="draggable-block red-block" draggable="true" id="dragRed" data-value="-50">−50</div>
+  </div>
+
+  <!-- 3x6 表格 -->
+  <table id="mathTable">
+    <tbody>
+      <tr class="row1" id="row1">
+        <td><input type="number" value="" placeholder="?" class="input-cell" data-col="0" inputmode="numeric"></td>
+        <td><input type="number" value="" placeholder="?" class="input-cell" data-col="1" inputmode="numeric"></td>
+        <td><input type="number" value="" placeholder="?" class="input-cell" data-col="2" inputmode="numeric"></td>
+        <td><input type="number" value="" placeholder="?" class="input-cell" data-col="3" inputmode="numeric"></td>
+        <td><input type="number" value="" placeholder="?" class="input-cell" data-col="4" inputmode="numeric"></td>
+        <td><input type="number" value="" placeholder="?" class="input-cell" data-col="5" inputmode="numeric"></td>
+      </tr>
+      <tr class="row2" id="row2">
+        <td data-col="0">拖動到此處</td>
+        <td data-col="1">拖動到此處</td>
+        <td data-col="2">拖動到此處</td>
+        <td data-col="3">拖動到此處</td>
+        <td data-col="4">拖動到此處</td>
+        <td data-col="5">拖動到此處</td>
+      </tr>
+      <tr class="row3" id="row3">
+        <td data-col="0" class="empty-result">?</td>
+        <td data-col="1" class="empty-result">?</td>
+        <td data-col="2" class="empty-result">?</td>
+        <td data-col="3" class="empty-result">?</td>
+        <td data-col="4" class="empty-result">?</td>
+        <td data-col="5" class="empty-result">?</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <button class="reset-btn" id="resetButton"><span>🔄</span> 重新開始</button>
+  <div class="instruction">
+    💡 輸入數字 → 拖動色塊到第二行 → 第三行顯示答案
+  </div>
+</div>
+
+<script>
+  (function() {
+    // ----- 取得元素 -----
+    const row1Inputs = document.querySelectorAll('#row1 .input-cell');
+    const row2Cells = document.querySelectorAll('#row2 td');
+    const row3Cells = document.querySelectorAll('#row3 td');
+    const dragGreen = document.getElementById('dragGreen');
+    const dragRed = document.getElementById('dragRed');
+    
+    // 第二行調整值
+    let adjustmentValues = new Array(6).fill(0);
+    
+    // 拖動狀態
+    let isDragging = false;
+    let currentDragValue = null;
+    let dragClone = null;
+    let draggedElement = null;
+    
+    // 輔助函數
+    function getBaseNumber(colIndex) {
+      const input = row1Inputs[colIndex];
+      if (!input) return null;
+      const raw = input.value.trim();
+      if (raw === '') return null;
+      const num = parseFloat(raw);
+      return isNaN(num) ? null : num;
+    }
+    
+    function updateResultColumn(colIndex) {
+      const cell = row3Cells[colIndex];
+      if (!cell) return;
+      const base = getBaseNumber(colIndex);
+      const adjust = adjustmentValues[colIndex] || 0;
+      
+      if (base === null || adjust === 0) {
+        cell.textContent = '?';
+        cell.classList.add('empty-result');
+        return;
+      }
+      
+      const result = base + adjust;
+      cell.textContent = result;
+      cell.classList.remove('empty-result');
+    }
+    
+    function updateAllResults() {
+      for (let i = 0; i < 6; i++) {
+        updateResultColumn(i);
+      }
+    }
+    
+    function refreshRow2Display() {
+      for (let i = 0; i < row2Cells.length; i++) {
+        const cell = row2Cells[i];
+        const val = adjustmentValues[i];
+        cell.classList.remove('light-green', 'light-red');
+        
+        if (val === 50) {
+          cell.textContent = '+50';
+          cell.classList.add('light-green');
+        } else if (val === -50) {
+          cell.textContent = '−50';
+          cell.classList.add('light-red');
+        } else {
+          cell.textContent = '拖動到此處';
+        }
+      }
+    }
+    
+    function setAdjustment(colIndex, value) {
+      if (colIndex < 0 || colIndex >= 6) return;
+      adjustmentValues[colIndex] = value;
+      refreshRow2Display();
+      updateResultColumn(colIndex);
+    }
+    
+    function resetAllAdjustments() {
+      adjustmentValues = new Array(6).fill(0);
+      refreshRow2Display();
+      updateAllResults();
+    }
+    
+    // ----- 克隆體管理 -----
+    function createDragClone(value, x, y, sourceElement) {
+      removeDragClone();
+      
+      dragClone = document.createElement('div');
+      dragClone.className = 'drag-clone';
+      
+      if (value === 50) {
+        dragClone.style.background = 'linear-gradient(180deg, #6ecf6e 0%, #3d8b3d 100%)';
+        dragClone.textContent = '+50';
+      } else if (value === -50) {
+        dragClone.style.background = 'linear-gradient(180deg, #f0716a 0%, #b52b27 100%)';
+        dragClone.textContent = '−50';
+      }
+      
+      // 使用與原方塊相同的尺寸
+      const sourceWidth = sourceElement.offsetWidth;
+      const sourceHeight = sourceElement.offsetHeight;
+      dragClone.style.width = sourceWidth + 'px';
+      dragClone.style.height = sourceHeight + 'px';
+      dragClone.style.left = (x - sourceWidth / 2) + 'px';
+      dragClone.style.top = (y - sourceHeight / 2) + 'px';
+      
+      document.body.appendChild(dragClone);
+      
+      // 強制重繪以確保動畫流暢
+      dragClone.offsetHeight;
+    }
+    
+    function moveDragClone(x, y) {
+      if (!dragClone) return;
+      const cloneWidth = dragClone.offsetWidth;
+      const cloneHeight = dragClone.offsetHeight;
+      dragClone.style.left = (x - cloneWidth / 2) + 'px';
+      dragClone.style.top = (y - cloneHeight / 2) + 'px';
+    }
+    
+    function removeDragClone() {
+      if (dragClone) {
+        if (dragClone.parentNode) {
+          dragClone.parentNode.removeChild(dragClone);
+        }
+        dragClone = null;
+      }
+    }
+    
+    // ----- 清除所有hover效果 -----
+    function clearAllCellHover() {
+      row2Cells.forEach(c => {
+        c.classList.remove('drag-hover');
+      });
+    }
+    
+    // ----- 開始拖動 -----
+    function startDrag(e, value, clientX, clientY, element) {
+      isDragging = true;
+      currentDragValue = value;
+      draggedElement = element;
+      
+      // 原方塊變半透明
+      element.classList.add('dragging');
+      
+      // 創建克隆體
+      createDragClone(value, clientX, clientY, element);
+      
+      // 防止頁面滾動
+      if (e.preventDefault) {
+        e.preventDefault();
+      }
+    }
+    
+    // ----- 移動拖動 -----
+    function moveDrag(clientX, clientY) {
+      if (!isDragging) return;
+      
+      // 移動克隆體
+      moveDragClone(clientX, clientY);
+      
+      // 檢查下方格子
+      const elem = document.elementFromPoint(clientX, clientY);
+      clearAllCellHover();
+      
+      if (elem) {
+        const cell = elem.closest('#row2 td');
+        if (cell) {
+          cell.classList.add('drag-hover');
+        }
+      }
+    }
+    
+    // ----- 結束拖動 -----
+    function endDrag(clientX, clientY) {
+      if (!isDragging) return;
+      
+      // 檢查放置位置
+      if (clientX !== undefined && clientY !== undefined) {
+        const elem = document.elementFromPoint(clientX, clientY);
+        if (elem) {
+          const cell = elem.closest('#row2 td');
+          if (cell) {
+            const colIndex = parseInt(cell.getAttribute('data-col'), 10);
+            if (!isNaN(colIndex) && colIndex >= 0 && colIndex < 6) {
+              if (currentDragValue === 50 || currentDragValue === -50) {
+                setAdjustment(colIndex, currentDragValue);
+                
+                // 放置成功動畫
+                cell.style.transform = 'scale(0.85)';
+                setTimeout(() => {
+                  cell.style.transform = '';
+                }, 150);
+              }
+            }
+          }
+        }
+      }
+      
+      // 清理狀態
+      cleanupDrag();
+    }
+    
+    function cleanupDrag() {
+      // 移除克隆體
+      removeDragClone();
+      
+      // 清除hover效果
+      clearAllCellHover();
+      
+      // 恢復原方塊
+      if (draggedElement) {
+        draggedElement.classList.remove('dragging');
+        draggedElement = null;
+      }
+      
+      isDragging = false;
+      currentDragValue = null;
+    }
+    
+    // ----- 設定綠色方塊事件 -----
+    function setupDraggableEvents(element, value) {
+      // 滑鼠事件
+      element.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        startDrag(e, value, e.clientX, e.clientY, element);
+      });
+      
+      // 觸控事件
+      element.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        startDrag(e, value, touch.clientX, touch.clientY, element);
+      }, { passive: false });
+      
+      // 防止默認拖動行為
+      element.addEventListener('dragstart', function(e) {
+        e.preventDefault();
+      });
+    }
+    
+    setupDraggableEvents(dragGreen, 50);
+    setupDraggableEvents(dragRed, -50);
+    
+    // ----- 全域移動事件 -----
+    document.addEventListener('mousemove', function(e) {
+      if (isDragging) {
+        e.preventDefault();
+        moveDrag(e.clientX, e.clientY);
+      }
+    });
+    
+    document.addEventListener('touchmove', function(e) {
+      if (isDragging) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        moveDrag(touch.clientX, touch.clientY);
+      }
+    }, { passive: false });
+    
+    // ----- 全域結束事件 -----
+    document.addEventListener('mouseup', function(e) {
+      if (isDragging) {
+        e.preventDefault();
+        endDrag(e.clientX, e.clientY);
+      }
+    });
+    
+    document.addEventListener('touchend', function(e) {
+      if (isDragging) {
+        e.preventDefault();
+        const touch = e.changedTouches[0];
+        endDrag(touch.clientX, touch.clientY);
+      }
+    });
+    
+    document.addEventListener('touchcancel', function(e) {
+      if (isDragging) {
+        cleanupDrag();
+      }
+    });
+    
+    // 防止在拖動時選中文字
+    document.addEventListener('selectstart', function(e) {
+      if (isDragging) {
+        e.preventDefault();
+      }
+    });
+    
+    // ----- 雙擊清除第二行格子 -----
+    row2Cells.forEach((cell, index) => {
+      cell.addEventListener('dblclick', function(e) {
+        setAdjustment(index, 0);
+      });
+    });
+    
+    // ----- 第一行輸入監聽 -----
+    row1Inputs.forEach((input, index) => {
+      input.addEventListener('input', function() {
+        updateResultColumn(index);
+      });
+      input.addEventListener('blur', function() {
+        updateResultColumn(index);
+      });
+    });
+    
+    // ----- 重置按鈕 -----
+    document.getElementById('resetButton').addEventListener('click', function() {
+      row1Inputs.forEach(input => {
+        input.value = '';
+      });
+      resetAllAdjustments();
+      updateAllResults();
+      
+      const btn = document.getElementById('resetButton');
+      btn.style.transform = 'scale(0.95)';
+      setTimeout(() => { btn.style.transform = ''; }, 120);
+    });
+    
+    // 初始化
+    function initialDisplay() {
+      refreshRow2Display();
+      updateAllResults();
+    }
+    initialDisplay();
+    
+  })();
+</script>
+</body>
+</html>
